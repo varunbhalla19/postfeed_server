@@ -1,0 +1,7 @@
+Post http://localhost:8000/posts
+content-type: application/json
+
+{
+    "title": "ab123456789",
+    "content":"ab123456789" 
+}
