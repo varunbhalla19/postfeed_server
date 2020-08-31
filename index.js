@@ -1,4 +1,4 @@
-const fs = require('fs')
+const fs = require("fs");
 const path = require("path");
 const express = require("express");
 
@@ -31,6 +31,15 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   next();
+});
+
+app.post("/img", (req, res) => {
+  if (req.file) {
+    console.log(req.file);
+    res.end("got image");
+  } else {
+    res.end("didnt get image");
+  }
 });
 
 app.get("/posts", (req, res) => {
@@ -80,6 +89,7 @@ app.post(
       .withMessage("Content-Body Too short"),
   ],
   (req, res, next) => {
+    console.log("/posts");
     const errors = validationResult(req);
     console.log(req.body);
     console.log(errors);
@@ -120,6 +130,68 @@ app.post(
   }
 );
 
+app.put("/posts/:postId", (req, res, next) => {
+  let { postId } = req.params;
+  console.log("put ", postId);
+  let { title, content, imageUrl } = req.body;
+  console.log(req.body, req.file);
+  if (req.file) {
+    console.log(" old img-> ", imageUrl, " and new img-> ", req.file.path);
+    fs.unlink(imageUrl, (err) =>
+      err ? console.log(err.message) : console.log("Old Img Deleted!")
+    );
+    imageUrl = req.file.path;
+  }
+  console.log("to be saved ===> ", title, content, imageUrl);
+
+  postModel
+    .findById(postId)
+    .then((post) => {
+      post.title = title;
+      post.content = content;
+      post.imageUrl = imageUrl;
+      return post.save();
+    })
+    .then((savedPost) => {
+      console.log("new post saved!");
+      res.status(200).json({
+        message: "Post updated successfully!",
+        post: savedPost,
+      });
+    })
+    .catch((er) => {
+      er.statusCode = 500;
+      next(er);
+    });
+  // res.end("ok!");
+});
+
+app.delete("/posts/:postId", (req, res, next) => {
+  const { postId } = req.params;
+  postModel
+    .findById(postId)
+    .then((post) => {
+      // we will check loggedIn User.
+
+      if (post) {
+        fs.unlink(post.imageUrl, (err) =>
+          err ? console.log(err.message) : console.log("Post Img Deleted!")
+        );
+        return postModel.findByIdAndRemove(postId);
+      }
+    })
+    .then((result) => {
+      console.log("Post Deleted ", result);
+      res.status(200).json({
+        message: "Post Deleted",
+      });
+    })
+    .catch((er) => {
+      er.statusCode = 500;
+      next(er);
+    });
+});
+
 app.use((er, req, res, next) => {
   console.log("inside er handler!");
   console.log(er.message);
@@ -139,8 +211,8 @@ app.use((er, req, res, next) => {
     res.status(er.statusCode).json({
       message: er.message,
     });
-    // res.end("Er!");
   }
+  // res.end("Er!");
   // }
 });
 
