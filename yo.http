@@ -1,7 +1,7 @@
-Post http://localhost:8000/posts
+Post http://localhost:8000/auth/login
 content-type: application/json
 
 {
-    "title": "ab123456789",
-    "content":"ab123456789" 
+    "email":"aabb@cc.in",
+    "password": "aaabbbccc" 
 }

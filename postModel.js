@@ -10,7 +10,33 @@ const postSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+const UserSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    password: { type: String, required: true },
+    email: { type: String, required: true },
+    status: { type: String, default: 'New User' },
+    posts : [
+    {
+        type : mongoose.SchemaTypes.ObjectId,
+        ref : 'PostsCollection'
+    }
+    ]
+  },
+  { timestamps: true }
+);
+
+
 exports.postModel = mongoose.model("PostsCollection", postSchema);
+
+exports.userSchema =  mongoose.model("UsersCollection", UserSchema);
+
+
+
+
+
+
+
 
 
 
